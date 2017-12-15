@@ -2,13 +2,13 @@ import Vue from 'vue'
 import App from './App'
 import router from './router'
 import VueResource from 'vue-resource'
-import moment from 'moment'
+//import moment from 'moment'
 
 Vue.config.productionTip = false
 
 Vue.use(VueResource)
 
-import {store} from './store'
+//import {store} from './store'
 
 /* eslint-disable no-new */
 new Vue({
