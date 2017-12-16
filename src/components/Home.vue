@@ -2,10 +2,11 @@
   .home
     .home-wrapper
       // Pretty dirty shit to recalculate on priceHigh/Low change
-      p(v-text="'GDAX:  ' + calc.priceHigh" v-if="!calculate()")
-      p(v-text="'Kraken: ' + calc.priceLow"  v-if="!calculate()")
+      p(v-text="'GDAX:  ' + calc.priceHigh + '€'" v-if="!calculate()")
+      p(v-text="'Kraken: ' + calc.priceLow + '€'"  v-if="!calculate()")
       
-      p(v-text="(calc.priceHigh - calc.priceLow).toFixed(2)")
+      p(v-text="(calc.priceHigh - calc.priceLow).toFixed(2) + '€'")
+      p(v-text="(calc.priceHigh / calc.priceLow * 100 - 100).toFixed(2) + '%'")
       br
       label(for="volumeInput") Volumen (€)&nbsp;
       input#volumeInput(v-model="calc.tradeVolumeFiat", type="number", min='0')
