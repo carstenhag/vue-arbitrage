@@ -9,7 +9,7 @@ Vue.use(Meta)
 export default new Router({
   routes: [
     {
-      path: '/',
+      path: '*',
       name: 'Home',
       component: Home
     }
