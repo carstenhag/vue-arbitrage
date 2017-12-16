@@ -5,7 +5,7 @@
       p(v-text="'GDAX:  ' + calc.priceHigh" v-if="!calculate()")
       p(v-text="'Kraken: ' + calc.priceLow"  v-if="!calculate()")
       
-      p(v-text="(calc.priceHigh - calc.priceLow).toPrecision(3)")
+      p(v-text="(calc.priceHigh - calc.priceLow).toFixed(2)")
       br
       label(for="volumeInput") Volumen (€)&nbsp;
       input#volumeInput(v-model="calc.tradeVolumeFiat", type="number", min='0')
@@ -29,7 +29,7 @@
       br
       br
       br
-      p(v-text="'Gewinn: ' + (calc.profit).toPrecision(3) + '€ — ' + (calc.profitPercentage).toPrecision(3) + '%'" v-if="calc.profit && calc.profitPercentage")
+      p(v-text="'Gewinn: ' + (calc.profit).toFixed(2) + '€ — ' + (calc.profitPercentage).toFixed(2) + '%'" v-if="calc.profit && calc.profitPercentage && calc.tradeVolumeFiat != 0")
 </template>
 
 <script>
