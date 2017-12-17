@@ -10,6 +10,7 @@ export const store = new Vuex.Store({
   plugins: [createPersistedState({key: 'vuex-arbitrage-' + storeVersion})],
   strict: process.env.NODE_ENV !== 'production',
   state: {
+    activeCrypto: 'litecoin',
     settings: {
       exchangeFeePercentage: '0.26',
       withdrawFeeCrypto: '0.001',
@@ -18,6 +19,9 @@ export const store = new Vuex.Store({
     }
   },
   mutations: {
+    updateActiveCrypto (state, payload) {
+      state.activeCrypto = payload
+    },
     updateExchangeFeePercentage (state, payload) {
       state.settings.exchangeFeePercentage = payload
     },

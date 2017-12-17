@@ -15,7 +15,6 @@
       br
       label(for="exchangeFeePercentageInput") Exchange Fee&nbsp;
       input#exchangeFeePercentageInput(v-model="exchangeFeePercentage", type="number", min='0')
-
       br
       br
       label(for="withdrawCryptoFeeInput") Withdraw Crypto Fee&nbsp;
@@ -25,8 +24,21 @@
       label(for="withdrawFiatFeeInput") Withdraw Fiat Fee&nbsp;
       input#withdrawFiatFeeInput(v-model="withdrawFeeFiat", type="number", min='0')
       br
+      .control-group
+        label.control.control--radio
+          | Bitcoin
+          input(type='radio', name='activeCrypto', value='bitcoin', v-model="activeCrypto")
+          .control__indicator
+        label.control.control--radio
+          | Ethereum
+          input(type='radio', name='activeCrypto', value='ethereum', v-model="activeCrypto")
+          .control__indicator
+        label.control.control--radio
+          | Litecoin
+          input(type='radio', name='activeCrypto', value='litecoin', v-model="activeCrypto")
+          .control__indicator
       br
-      button(v-on:click="getLTCPrice()" :disabled="calc.priceHigh == null || calc.priceLow == null") Refresh
+      button(v-on:click="getCryptoPrices()" :disabled="calc.priceHigh == null || calc.priceLow == null") Refresh
       span &nbsp;&nbsp;
       button(v-on:click="calculate()" :disabled="calc.priceHigh == null || calc.priceLow == null") Calculate
       br
@@ -51,7 +63,7 @@ export default {
   },
   metaInfo: { title: 'Home' },
   created () {
-    this.getLTCPrice()
+    this.getCryptoPrices()
   },
   computed: {
     pricesAvailable () {
@@ -59,6 +71,15 @@ export default {
     },
     getSettings () {
       return this.$store.state.settings
+    },
+    activeCrypto: {
+      get () {
+        return this.$store.state.activeCrypto
+      },
+      set (value) {
+        this.$store.commit('updateActiveCrypto', value)
+        this.getCryptoPrices()
+      }
     },
     tradeVolumeFiat: {
       get () {
@@ -112,18 +133,27 @@ export default {
       calc.profitPercentage = calc.profit / settings.tradeVolumeFiat * 100
       this.calc = calc
     },
-    getLTCPrice () {
-      this.clearPrice()
+    getCryptoPrices () {
+      this.clearPrice() // race condition?
       const corsPrefix = 'https://cors-anywhere.herokuapp.com/'
 
-      this.$http.get(corsPrefix + 'https://api.cryptowat.ch/markets/gdax/ltceur/price', {headers: {'X-Requested-With': 'vue-arbitrage'}}).then(response => {
+      var tradePair
+      switch (this.activeCrypto) {
+        case 'bitcoin': tradePair = 'btceur'; break
+        case 'ethereum': tradePair = 'etheur'; break
+        case 'litecoin': tradePair = 'ltceur'; break
+        default: tradePair = 'ltceur'
+      }
+
+      this.$http.get(corsPrefix + 'https://api.cryptowat.ch/markets/gdax/' + tradePair + '/price', {headers: {'X-Requested-With': 'vue-arbitrage'}}).then(response => {
         this.calc.priceHigh = response.body.result.price
       }, response => {
         console.error(response.body)
       })
 
-      this.$http.get(corsPrefix + 'https://api.cryptowat.ch/markets/kraken/ltceur/price', {headers: {'X-Requested-With': 'vue-arbitrage'}}).then(response => {
+      this.$http.get(corsPrefix + 'https://api.cryptowat.ch/markets/kraken/' + tradePair + '/price', {headers: {'X-Requested-With': 'vue-arbitrage'}}).then(response => {
         this.calc.priceLow = response.body.result.price
+        this.calculate() // shouldnt be here, not sure how to use async/await stuff // race condition?
       }, response => {
         console.error(response.body)
       })
@@ -147,6 +177,8 @@ export default {
 </script>
 
 <style scoped lang="stylus">
+@import '../colors.styl'
+
 h1, h2
   font-weight: normal
 
@@ -184,5 +216,101 @@ a
 .fa-spin
   color white
 
+
+
+// Box to contain form controls
+.control-group
+  display inline-block
+  vertical-align top
+  background $color--white
+  text-align left
+  box-shadow 0 1px 2px rgba(0, 0, 0, 0.1)
+  padding 30px
+  width 200px
+  height 210px
+  margin 10px
+
+// Basic control styles
+.control
+  display block
+  position relative
+  padding-left 30px
+  margin-bottom 15px
+  cursor pointer
+  font-size 18px
+  
+  // Hide default browser input
+  input
+    position absolute
+    z-index -1
+    opacity 0
+    
+
+// Custom control
+.control__indicator
+  position absolute
+  top 2px
+  left 0
+  height 20px
+  width 20px
+  background lightGray
+  
+  .control--radio &
+    border-radius 50% // Makes radio buttons circlular
+  
+  // Hover and focus
+  .control:hover input ~ &,
+  .control input:focus ~ &
+    background mediumGray
+  
+  // Checked
+  .control input:checked ~ &
+    background primaryColor
+
+  // Hover when checked
+  .control:hover input:not([disabled]):checked ~ &,
+  .control input:checked:focus ~ &
+    background secondaryColor
+  
+  // Hide default browser input
+  .control input:disabled ~ &
+    background lightGray
+    opacity 0.6
+    pointer-events none
+
+  &:after
+    content ''
+    position absolute
+    display none // Hide check
+
+    .control input:checked ~ &
+      display block // Show check
+ 
+    // Checkbox tick
+    .control--checkbox &
+      left 8px
+      top 4px
+      width 3px
+      height 8px
+      border solid white
+      border-width 0 2px 2px 0
+      transform rotate(45deg)
+    
+    // Disabled tick colour
+    .control--checkbox input:disabled ~ &
+      border-color darkGray
+
+    // Radio button inner circle
+    .control--radio &
+      left 7px
+      top 7px
+      height 6px
+      width 6px
+      border-radius 50%
+      background white
+
+    // Disabled circle colour
+    .control--radio input:disabled ~ &
+      background darkGray
 
 </style>
