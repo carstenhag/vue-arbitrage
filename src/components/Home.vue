@@ -1,27 +1,29 @@
 <template lang="pug">
   .home
     .home-wrapper
-      // Pretty dirty shit to recalculate on priceHigh/Low change
-      p(v-text="'GDAX:  ' + calc.priceHigh + '€'" v-if="!calculate()")
-      p(v-text="'Kraken: ' + calc.priceLow + '€'"  v-if="!calculate()")
-      
-      p(v-text="(calc.priceHigh - calc.priceLow).toFixed(2) + '€'")
-      p(v-text="(calc.priceHigh / calc.priceLow * 100 - 100).toFixed(2) + '%'")
+      br(v-if="!pricesAvailable")
+      icon(name="refresh" scale="2" spin v-if="!pricesAvailable")
+      br
+      p(v-text="'GDAX:  ' + calc.priceHigh + '€'" v-if="pricesAvailable")
+      p(v-text="'Kraken: ' + calc.priceLow + '€'"  v-if="pricesAvailable")
+      p(v-text="formatEur(calc.priceHigh - calc.priceLow)" v-if="pricesAvailable")
+      p(v-text="formatPercentage(calc.priceHigh / calc.priceLow * 100 - 100)" v-if="pricesAvailable")
       br
       label(for="volumeInput") Volumen (€)&nbsp;
-      input#volumeInput(v-model="calc.tradeVolumeFiat", type="number", min='0')
+      input#volumeInput(v-model="tradeVolumeFiat", type="number", min='0')
       br
       br
       label(for="exchangeFeePercentageInput") Exchange Fee&nbsp;
-      input#exchangeFeePercentageInput(v-model="calc.exchangeFeePercentage", type="number", min='0')
+      input#exchangeFeePercentageInput(v-model="exchangeFeePercentage", type="number", min='0')
+
       br
       br
       label(for="withdrawCryptoFeeInput") Withdraw Crypto Fee&nbsp;
-      input#withdrawCryptoFeeInput(v-model="calc.withdrawFeeCrypto", type="number", min='0')
+      input#withdrawCryptoFeeInput(v-model="withdrawFeeCrypto", type="number", min='0')
       br
       br
       label(for="withdrawFiatFeeInput") Withdraw Fiat Fee&nbsp;
-      input#withdrawFiatFeeInput(v-model="calc.withdrawFeeFiat", type="number", min='0')
+      input#withdrawFiatFeeInput(v-model="withdrawFeeFiat", type="number", min='0')
       br
       br
       button(v-on:click="getLTCPrice()" :disabled="calc.priceHigh == null || calc.priceLow == null") Refresh
@@ -30,7 +32,8 @@
       br
       br
       br
-      p(v-text="'Gewinn: ' + (calc.profit).toFixed(2) + '€ — ' + (calc.profitPercentage).toFixed(2) + '%'" v-if="calc.profit && calc.profitPercentage && calc.tradeVolumeFiat != 0")
+      p(v-text="'Gewinn: ' + formatEur(calc.profit) + ' — ' + formatPercentage(calc.profitPercentage)" v-if="calc.profit && calc.profitPercentage")
+      br
 </template>
 
 <script>
@@ -41,12 +44,8 @@ export default {
       calc: {
         priceHigh: null,
         priceLow: null,
-        exchangeFeePercentage: 0.26,
-        withdrawFeeCrypto: 0.001,
-        withdrawFeeFiat: 0.15,
-        tradeVolumeFiat: 500,
-        profit: 0,
-        profitPercentage: 0
+        profit: null,
+        profitPercentage: null
       }
     }
   },
@@ -54,22 +53,67 @@ export default {
   created () {
     this.getLTCPrice()
   },
+  computed: {
+    pricesAvailable () {
+      return this.calc.priceHigh !== null && this.calc.priceLow !== null
+    },
+    getSettings () {
+      return this.$store.state.settings
+    },
+    tradeVolumeFiat: {
+      get () {
+        return this.$store.state.settings.tradeVolumeFiat
+      },
+      set (value) {
+        this.$store.commit('updateTradeVolumeFiat', value)
+      }
+    },
+    exchangeFeePercentage: {
+      get () {
+        return this.$store.state.settings.exchangeFeePercentage
+      },
+      set (value) {
+        this.$store.commit('updateExchangeFeePercentage', value)
+      }
+    },
+    withdrawFeeCrypto: {
+      get () {
+        return this.$store.state.settings.withdrawFeeCrypto
+      },
+      set (value) {
+        this.$store.commit('updateWithdrawFeeCrypto', value)
+      }
+    },
+    withdrawFeeFiat: {
+      get () {
+        return this.$store.state.settings.withdrawFeeFiat
+      },
+      set (value) {
+        this.$store.commit('updateWithdrawFeeFiat', value)
+      }
+    }
+  },
   methods: {
     // arbitrage(priceHigh;priceLow;eur;fee;withdrawalFee) = ((eur/priceLow * (100-fee)/100) - withdrawalFee) * priceHigh - eur - 0.15
     calculate () {
       var calc = this.calc
+      let settings = JSON.parse(JSON.stringify(this.getSettings))
 
-      var amountCrypto = calc.tradeVolumeFiat / calc.priceLow
-      amountCrypto = amountCrypto * (100 - calc.exchangeFeePercentage) / 100
-      amountCrypto = amountCrypto - calc.withdrawFeeCrypto
+      for (var [key, value] of Object.entries(settings)) {
+        settings[key] = parseFloat(value.replace(/,/, '.')) // ParseFloat only parses with '.'
+      }
+
+      var amountCrypto = settings.tradeVolumeFiat / calc.priceLow
+      amountCrypto = amountCrypto * (100 - settings.exchangeFeePercentage) / 100
+      amountCrypto = amountCrypto - settings.withdrawFeeCrypto
 
       let fiatAmount = amountCrypto * calc.priceHigh
-      calc.profit = fiatAmount - calc.tradeVolumeFiat - calc.withdrawFeeFiat
-      calc.profitPercentage = calc.profit / calc.tradeVolumeFiat * 100
-
+      calc.profit = fiatAmount - settings.tradeVolumeFiat - settings.withdrawFeeFiat
+      calc.profitPercentage = calc.profit / settings.tradeVolumeFiat * 100
       this.calc = calc
     },
     getLTCPrice () {
+      this.clearPrice()
       const corsPrefix = 'https://cors-anywhere.herokuapp.com/'
 
       this.$http.get(corsPrefix + 'https://api.cryptowat.ch/markets/gdax/ltceur/price', {headers: {'X-Requested-With': 'vue-arbitrage'}}).then(response => {
@@ -83,20 +127,25 @@ export default {
       }, response => {
         console.error(response.body)
       })
+    },
+    clearPrice () {
+      this.calc.priceHigh = null
+      this.calc.priceLow = null
+    },
+    formatEur (number) {
+      return number.toFixed(2) + '€'
+    },
+    formatPercentage (number) {
+      return number.toFixed(2) + '%'
+    },
+    printElement (el) {
+      console.log(el)
+      return el
     }
-  },
-  computed: {
   }
 }
-
-/*
-  https://api.cryptowat.ch/markets/gdax/ltceur/price
-  https://api.cryptowat.ch/markets/kraken/ltceur/price
-  result.price
-*/
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="stylus">
 h1, h2
   font-weight: normal
@@ -119,18 +168,21 @@ a
 
 .home-wrapper
   background-color: #031914
-  width: 1280px
-  height: 800px
+  max-width: 1280px
+  max-height: 800px
   opacity: 0.95
   border-radius: 4px
   position: absolute
   top: 50%;
   left: 50%;
   transform: translate(-50%,-50%);
-
+  padding 36px 24px
 
   p, label
     color white
+
+.fa-spin
+  color white
 
 
 </style>
