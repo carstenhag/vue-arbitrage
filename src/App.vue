@@ -1,11 +1,10 @@
 <template lang="pug">
   #app
     .container
-      flat-surface-shader.shader(
+      //flat-surface-shader.shader(
         type="canvas" 
         :mesh="{ambient: '#555', diffuse: '#c0c0c0', speed: 0.001}"
-        :light="{ambient: '#107ba7', diffuse: '#0ea26e', draw: false}"
-      )
+        :light="{ambient: '#107ba7', diffuse: '#0ea26e', draw: false}")
     router-view
 </template>
 
@@ -28,10 +27,14 @@ export default {
 </style>
 
 <style lang="stylus">
+@import './colors.styl'
 
 html, body, p
   padding 0
   margin 0
+
+body
+  background-color: secondaryColor
 
 #app
   font-family: 'Avenir', Helvetica, Arial, sans-serif

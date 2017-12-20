@@ -1,9 +1,7 @@
 <template lang="pug">
   .home
     .home-wrapper
-      br(v-if="!pricesAvailable")
-      icon(name="refresh" scale="2" spin v-if="!pricesAvailable")
-      br
+      icon#refresh(name="refresh" scale="2" spin v-if="!pricesAvailable")
       p(v-text="'GDAX:  ' + calc.priceHigh + '€'" v-if="pricesAvailable")
       p(v-text="'Kraken: ' + calc.priceLow + '€'"  v-if="pricesAvailable")
       p(v-text="formatEur(calc.priceHigh - calc.priceLow)" v-if="pricesAvailable")
@@ -30,6 +28,10 @@
           input(type='radio', name='activeCrypto', value='bitcoin', v-model="activeCrypto")
           .control__indicator
         label.control.control--radio
+          | Bitcoin Cash
+          input(type='radio', name='activeCrypto', value='bitcoincash', v-model="activeCrypto")
+          .control__indicator
+        label.control.control--radio
           | Ethereum
           input(type='radio', name='activeCrypto', value='ethereum', v-model="activeCrypto")
           .control__indicator
@@ -43,8 +45,7 @@
       button(v-on:click="calculate()" :disabled="calc.priceHigh == null || calc.priceLow == null") Calculate
       br
       br
-      br
-      p(v-text="'Gewinn: ' + formatEur(calc.profit) + ' — ' + formatPercentage(calc.profitPercentage)" v-if="calc.profit && calc.profitPercentage")
+      p#profit(v-text="'Gewinn: ' + formatEur(calc.profit) + ' — ' + formatPercentage(calc.profitPercentage)" v-if="calc.profit && calc.profitPercentage")
       br
 </template>
 
@@ -140,6 +141,7 @@ export default {
       var tradePair
       switch (this.activeCrypto) {
         case 'bitcoin': tradePair = 'btceur'; break
+        case 'bitcoincash': tradePair = 'bcheur'; break
         case 'ethereum': tradePair = 'etheur'; break
         case 'litecoin': tradePair = 'ltceur'; break
         default: tradePair = 'ltceur'
@@ -208,14 +210,17 @@ a
   top: 50%;
   left: 50%;
   transform: translate(-50%,-50%);
-  padding 36px 24px
+  padding 12px 24px
 
   p, label
     color white
-
-.fa-spin
+  
+#refresh
   color white
+  margin 12px 0 24px 0
 
+#profit
+  margin: 12px 0 6px
 
 
 // Box to contain form controls
@@ -225,10 +230,8 @@ a
   background $color--white
   text-align left
   box-shadow 0 1px 2px rgba(0, 0, 0, 0.1)
-  padding 30px
+  padding 24px 0 12px 0
   width 200px
-  height 210px
-  margin 10px
 
 // Basic control styles
 .control
