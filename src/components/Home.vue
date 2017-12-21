@@ -40,9 +40,9 @@
           input(type='radio', name='activeCrypto', value='litecoin', v-model="activeCrypto")
           .control__indicator
       br
-      button(v-on:click="getCryptoPrices()" :disabled="calc.priceHigh == null || calc.priceLow == null") Refresh
+      input.button(type="button" value="Refresh" v-on:click="getCryptoPrices()" :disabled="calc.priceHigh == null || calc.priceLow == null")
       span &nbsp;&nbsp;
-      button(v-on:click="calculate()" :disabled="calc.priceHigh == null || calc.priceLow == null") Calculate
+      input.button(type="button" value="Calculate" v-on:click="calculate()" :disabled="calc.priceHigh == null || calc.priceLow == null")
       br
       br
       p#profit(v-text="'Gewinn: ' + formatEur(calc.profit) + ' — ' + formatPercentage(calc.profitPercentage)" v-if="calc.profit && calc.profitPercentage")
@@ -227,7 +227,6 @@ a
 .control-group
   display inline-block
   vertical-align top
-  background $color--white
   text-align left
   box-shadow 0 1px 2px rgba(0, 0, 0, 0.1)
   padding 24px 0 12px 0
@@ -248,6 +247,19 @@ a
     z-index -1
     opacity 0
     
+
+// buttons
+.button
+  color white
+  font-size 0.8rem
+  background-color: primaryColor
+  padding 6px 8px
+  border none
+  border-radius 2px
+
+  &:hover
+    background-color: secondaryColor
+
 
 // Custom control
 .control__indicator
