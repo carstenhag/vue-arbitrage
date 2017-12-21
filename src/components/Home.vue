@@ -6,22 +6,19 @@
       p(v-text="'Kraken: ' + calc.priceLow + '€'"  v-if="pricesAvailable")
       p(v-text="formatEur(calc.priceHigh - calc.priceLow)" v-if="pricesAvailable")
       p(v-text="formatPercentage(calc.priceHigh / calc.priceLow * 100 - 100)" v-if="pricesAvailable")
-      br
-      label(for="volumeInput") Volumen (€)&nbsp;
-      input#volumeInput(v-model="tradeVolumeFiat", type="number", min='0')
-      br
-      br
-      label(for="exchangeFeePercentageInput") Exchange Fee&nbsp;
-      input#exchangeFeePercentageInput(v-model="exchangeFeePercentage", type="number", min='0')
-      br
-      br
-      label(for="withdrawCryptoFeeInput") Withdraw Crypto Fee&nbsp;
-      input#withdrawCryptoFeeInput(v-model="withdrawFeeCrypto", type="number", min='0')
-      br
-      br
-      label(for="withdrawFiatFeeInput") Withdraw Fiat Fee&nbsp;
-      input#withdrawFiatFeeInput(v-model="withdrawFeeFiat", type="number", min='0')
-      br
+      .inputs
+        .input-group
+          label(for="volumeInput") Volume (€)&nbsp;
+          input#volumeInput(v-model="tradeVolumeFiat", type="number", min='0')
+        .input-group
+          label(for="exchangeFeePercentageInput") Exchange Fee&nbsp;
+          input#exchangeFeePercentageInput(v-model="exchangeFeePercentage", type="number", min='0')
+        .input-group
+          label(for="withdrawCryptoFeeInput") Withdraw Crypto Fee&nbsp;
+          input#withdrawCryptoFeeInput(v-model="withdrawFeeCrypto", type="number", min='0')
+        .input-group
+          label(for="withdrawFiatFeeInput") Withdraw Fiat Fee&nbsp;
+          input#withdrawFiatFeeInput(v-model="withdrawFeeFiat", type="number", min='0')
       .control-group
         label.control.control--radio
           | Bitcoin
@@ -39,14 +36,11 @@
           | Litecoin
           input(type='radio', name='activeCrypto', value='litecoin', v-model="activeCrypto")
           .control__indicator
-      br
-      input.button(type="button" value="Refresh" v-on:click="getCryptoPrices()" :disabled="calc.priceHigh == null || calc.priceLow == null")
-      span &nbsp;&nbsp;
-      input.button(type="button" value="Calculate" v-on:click="calculate()" :disabled="calc.priceHigh == null || calc.priceLow == null")
-      br
-      br
+      .button-group
+        input.button(type="button" value="Refresh" v-on:click="getCryptoPrices()" :disabled="calc.priceHigh == null || calc.priceLow == null")
+        span &nbsp;&nbsp;
+        input.button(type="button" value="Calculate" v-on:click="calculate()" :disabled="calc.priceHigh == null || calc.priceLow == null")
       p#profit(v-text="'Gewinn: ' + formatEur(calc.profit) + ' — ' + formatPercentage(calc.profitPercentage)" v-if="calc.profit && calc.profitPercentage")
-      br
 </template>
 
 <script>
@@ -260,6 +254,22 @@ a
   &:hover
     background-color: secondaryColor
 
+.button-group
+  margin-bottom 12px
+
+.input-group
+  display flex
+  justify-content space-between
+  margin 8px 0
+  
+  input
+    border none
+    border-radius 2px
+    padding-left 4px
+    margin-left 8px
+
+.inputs
+  margin-top 12px
 
 // Custom control
 .control__indicator
