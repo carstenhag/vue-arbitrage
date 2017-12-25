@@ -112,6 +112,10 @@ export default {
   methods: {
     // arbitrage(priceHigh;priceLow;eur;fee;withdrawalFee) = ((eur/priceLow * (100-fee)/100) - withdrawalFee) * priceHigh - eur - 0.15
     calculate () {
+      if (!this.pricesAvailable) {
+        return
+      }
+
       var calc = this.calc
       let settings = JSON.parse(JSON.stringify(this.getSettings))
 
@@ -143,6 +147,7 @@ export default {
 
       this.$http.get(corsPrefix + 'https://api.cryptowat.ch/markets/gdax/' + tradePair + '/price', {headers: {'X-Requested-With': 'vue-arbitrage'}}).then(response => {
         this.calc.priceHigh = response.body.result.price
+        this.calculate()
       }, response => {
         console.error(response.body)
       })
