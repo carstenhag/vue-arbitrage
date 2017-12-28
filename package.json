@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "moment": "^2.19.4",
+    "sw-precache-webpack-plugin": "^0.11.4",
     "vue": "^2.5.2",
     "vue-awesome": "^2.3.4",
     "vue-flat-surface-shader": "^1.0.5",
@@ -60,6 +61,7 @@
     "shelljs": "^0.7.6",
     "stylus": "^0.54.5",
     "stylus-loader": "^3.0.1",
+    "sw-precache": "^5.2.0",
     "uglifyjs-webpack-plugin": "^1.1.1",
     "url-loader": "^0.5.8",
     "vue-loader": "^13.3.0",
