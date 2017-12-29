@@ -134,7 +134,7 @@ export default {
     },
     getCryptoPrices () {
       this.clearPrice() // race condition?
-      const corsPrefix = 'https://cors-anywhere.herokuapp.com/'
+      const corsPrefix = 'https://proxy-arbitrage.chagemann.de/'
 
       var tradePair
       switch (this.activeCrypto) {
@@ -145,14 +145,14 @@ export default {
         default: tradePair = 'ltceur'
       }
 
-      this.$http.get(corsPrefix + 'https://api.cryptowat.ch/markets/gdax/' + tradePair + '/price', {headers: {'X-Requested-With': 'vue-arbitrage'}}).then(response => {
+      this.$http.get(corsPrefix + 'markets/gdax/' + tradePair + '/price').then(response => {
         this.calc.priceHigh = response.body.result.price
         this.calculate()
       }, response => {
         console.error(response.body)
       })
 
-      this.$http.get(corsPrefix + 'https://api.cryptowat.ch/markets/kraken/' + tradePair + '/price', {headers: {'X-Requested-With': 'vue-arbitrage'}}).then(response => {
+      this.$http.get(corsPrefix + 'markets/kraken/' + tradePair + '/price').then(response => {
         this.calc.priceLow = response.body.result.price
         this.calculate() // shouldnt be here, not sure how to use async/await stuff // race condition?
       }, response => {
