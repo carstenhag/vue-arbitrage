@@ -211,6 +211,8 @@ a
   transform: translate(-50%,-50%);
   padding 12px 24px
 
+  box-shadow: 0px 0px 15px 0px rgba(0,0,0,0.5);
+
   p, label
     color white
   
