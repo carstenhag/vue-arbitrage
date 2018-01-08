@@ -200,7 +200,7 @@ a
   width: 100%
 
 .home-wrapper
-  background-color: #031914
+  background-color: darken(primaryColor, 30)
   max-width: 1280px
   max-height: 800px
   opacity: 0.95
