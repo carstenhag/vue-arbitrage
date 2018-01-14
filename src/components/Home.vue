@@ -40,7 +40,9 @@
         input.button(type="button" value="Refresh" v-on:click="getCryptoPrices()" :disabled="calc.priceHigh == null || calc.priceLow == null")
         span &nbsp;&nbsp;
         input.button(type="button" value="Calculate" v-on:click="calculate()" :disabled="calc.priceHigh == null || calc.priceLow == null")
-      p#profit(v-text="'Gewinn: ' + formatEur(calc.profit) + ' — ' + formatPercentage(calc.profitPercentage)" v-if="calc.profit && calc.profitPercentage")
+      p#profit(v-text="'Gewinn: ' + formatEur(calc.profit) + ' — ' + formatPercentage(calc.profitPercentage)" v-if="calc.profit && calc.profitPercentage && pricesAvailable")
+      p(v-if="gdaxPricierThanKraken && pricesAvailable") Buy on Kraken, sell on GDAX
+      p(v-if="!gdaxPricierThanKraken && pricesAvailable") Buy on GDAX, sell on Kraken
 </template>
 
 <script>
@@ -51,6 +53,8 @@ export default {
       calc: {
         priceHigh: null,
         priceLow: null,
+        priceTemp0: null,
+        priceTemp1: null,
         profit: null,
         profitPercentage: null
       }
@@ -62,7 +66,10 @@ export default {
   },
   computed: {
     pricesAvailable () {
-      return this.calc.priceHigh !== null && this.calc.priceLow !== null
+      return this.calc.priceTemp0 !== null && this.calc.priceTemp1 !== null
+    },
+    gdaxPricierThanKraken () {
+      return this.calc.priceTemp0 > this.calc.priceTemp1
     },
     getSettings () {
       return this.$store.state.settings
@@ -112,13 +119,21 @@ export default {
   methods: {
     // arbitrage(priceHigh;priceLow;eur;fee;withdrawalFee) = ((eur/priceLow * (100-fee)/100) - withdrawalFee) * priceHigh - eur - 0.15
     calculate () {
+      var calc = this.calc
+
+      if (calc.priceTemp0 > calc.priceTemp1) {
+        calc.priceHigh = calc.priceTemp0
+        calc.priceLow = calc.priceTemp1
+      } else {
+        calc.priceHigh = calc.priceTemp1
+        calc.priceLow = calc.priceTemp0
+      }
+
       if (!this.pricesAvailable) {
         return
       }
 
-      var calc = this.calc
       let settings = JSON.parse(JSON.stringify(this.getSettings))
-
       for (var [key, value] of Object.entries(settings)) {
         settings[key] = parseFloat(value.replace(/,/, '.')) // ParseFloat only parses with '.'
       }
@@ -146,14 +161,14 @@ export default {
       }
 
       this.$http.get(corsPrefix + 'markets/gdax/' + tradePair + '/price').then(response => {
-        this.calc.priceHigh = response.body.result.price
+        this.calc.priceTemp0 = response.body.result.price
         this.calculate()
       }, response => {
         console.error(response.body)
       })
 
       this.$http.get(corsPrefix + 'markets/kraken/' + tradePair + '/price').then(response => {
-        this.calc.priceLow = response.body.result.price
+        this.calc.priceTemp1 = response.body.result.price
         this.calculate() // shouldnt be here, not sure how to use async/await stuff // race condition?
       }, response => {
         console.error(response.body)
@@ -162,6 +177,8 @@ export default {
     clearPrice () {
       this.calc.priceHigh = null
       this.calc.priceLow = null
+      this.calc.priceTemp0 = null
+      this.calc.priceTemp1 = null
     },
     formatEur (number) {
       return number.toFixed(2) + '€'
