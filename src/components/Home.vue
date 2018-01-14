@@ -2,8 +2,8 @@
   .home
     .home-wrapper
       icon#refresh(name="refresh" scale="2" spin v-if="!pricesAvailable")
-      p(v-text="'GDAX:  ' + calc.priceHigh + '€'" v-if="pricesAvailable")
-      p(v-text="'Kraken: ' + calc.priceLow + '€'"  v-if="pricesAvailable")
+      p(v-text="'GDAX:  ' + formatEur(calc.priceHigh)" v-if="pricesAvailable")
+      p(v-text="'Kraken: ' + formatEur(calc.priceLow)"  v-if="pricesAvailable")
       p(v-text="formatEur(calc.priceHigh - calc.priceLow)" v-if="pricesAvailable")
       p(v-text="formatPercentage(calc.priceHigh / calc.priceLow * 100 - 100)" v-if="pricesAvailable")
       .inputs
