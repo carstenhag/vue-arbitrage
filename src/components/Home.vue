@@ -53,8 +53,8 @@ export default {
       calc: {
         priceHigh: null,
         priceLow: null,
-        priceTemp0: null,
-        priceTemp1: null,
+        priceGDAX: null,
+        priceKraken: null,
         profit: null,
         profitPercentage: null
       }
@@ -66,10 +66,10 @@ export default {
   },
   computed: {
     pricesAvailable () {
-      return this.calc.priceTemp0 !== null && this.calc.priceTemp1 !== null
+      return this.calc.priceGDAX !== null && this.calc.priceKraken !== null
     },
     gdaxPricierThanKraken () {
-      return this.calc.priceTemp0 > this.calc.priceTemp1
+      return this.calc.priceGDAX > this.calc.priceKraken
     },
     getSettings () {
       return this.$store.state.settings
@@ -121,12 +121,12 @@ export default {
     calculate () {
       var calc = this.calc
 
-      if (calc.priceTemp0 > calc.priceTemp1) {
-        calc.priceHigh = calc.priceTemp0
-        calc.priceLow = calc.priceTemp1
+      if (calc.priceGDAX > calc.priceKraken) {
+        calc.priceHigh = calc.priceGDAX
+        calc.priceLow = calc.priceKraken
       } else {
-        calc.priceHigh = calc.priceTemp1
-        calc.priceLow = calc.priceTemp0
+        calc.priceHigh = calc.priceKraken
+        calc.priceLow = calc.priceGDAX
       }
 
       if (!this.pricesAvailable) {
@@ -161,14 +161,14 @@ export default {
       }
 
       this.$http.get(corsPrefix + 'markets/gdax/' + tradePair + '/price').then(response => {
-        this.calc.priceTemp0 = response.body.result.price
+        this.calc.priceGDAX = response.body.result.price
         this.calculate()
       }, response => {
         console.error(response.body)
       })
 
       this.$http.get(corsPrefix + 'markets/kraken/' + tradePair + '/price').then(response => {
-        this.calc.priceTemp1 = response.body.result.price
+        this.calc.priceKraken = response.body.result.price
         this.calculate() // shouldnt be here, not sure how to use async/await stuff // race condition?
       }, response => {
         console.error(response.body)
@@ -177,8 +177,8 @@ export default {
     clearPrice () {
       this.calc.priceHigh = null
       this.calc.priceLow = null
-      this.calc.priceTemp0 = null
-      this.calc.priceTemp1 = null
+      this.calc.priceGDAX = null
+      this.calc.priceKraken = null
     },
     formatEur (number) {
       return number.toFixed(2) + '€'
