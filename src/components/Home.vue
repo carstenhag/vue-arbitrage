@@ -160,7 +160,7 @@ export default {
         default: tradePair = 'ltceur'
       }
 
-      this.$http.get(corsPrefix + 'markets/gdax/' + tradePair + '/price').then(response => {
+      this.$http.get(corsPrefix + 'markets/coinbase-pro/' + tradePair + '/price').then(response => {
         this.calc.priceGDAX = response.body.result.price
         this.calculate()
       }, response => {
